@@ -7,9 +7,11 @@ def update_cmds(commands, path, remove=False):
         path into commands that are not currently in commands """
     # Load module folder
     cmds = importlib.import_module(path)
+    cmds.update_all()
 
     # Update modules
     for mod in cmds.__all__:
+        print(mod)
         if mod in commands:
             # Old module
             del commands[mod]
@@ -20,6 +22,8 @@ def update_cmds(commands, path, remove=False):
         for cmd in commands:
             if cmd not in cmds.__all__:
                 del commands[cmd]
+
+    del cmds
 
 
 if __name__ == "__main__":

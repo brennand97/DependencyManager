@@ -1,5 +1,7 @@
 
-__help__ = ""
+__help__ = "  Name:         Full List\n" \
+           "  Syntax:       fl\n" \
+           "  Description:  Move back to the base, all tables"
 __arg_list__ = {}
 
 def cmd(self, arg_lst):

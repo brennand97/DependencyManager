@@ -97,6 +97,7 @@ class DynamicCmd:
 
 
     def handle_command(self, args):
+        self.update_commands()
         if self.pre_callback != None:
             self.pre_callback(args)
         action = args[0]
