@@ -22,8 +22,8 @@ def cmd(data, arg_lst):
             else:
                 print("Invalid syntax: dif [--sql] <filepath1> [--sql] <filepath2>")
                 return
-    f1_new, f1_dep = data._DependencyNavigator2__ACTION__load_sql_tmp(files[0][0]) if files[0][1] else data.__ACTION__load_tmp(files[0][0])
-    f2_new, f2_dep = data._DependencyNavigator2__ACTION__load_sql_tmp(files[1][0]) if files[1][1] else data.__ACTION__load_tmp(files[1][0])
+    f1_new, f1_dep = data._DependencyNavigator__ACTION__load_sql_tmp(files[0][0]) if files[0][1] else data.__ACTION__load_tmp(files[0][0])
+    f2_new, f2_dep = data._DependencyNavigator__ACTION__load_sql_tmp(files[1][0]) if files[1][1] else data.__ACTION__load_tmp(files[1][0])
     for t_dif in list(set(f1_new) - set(f2_new)):
         if CO.list_contains(f1_new, t_dif):
             # This table exists in file1 and not file2

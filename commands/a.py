@@ -52,10 +52,10 @@ def cmd(data, arg_lst):
                     return
     for child, new_name in new_names:
         if child:
-            dependencies = data._DependencyNavigator2__ACTION__get_dependencies( \
+            dependencies = data._DependencyNavigator__ACTION__get_dependencies( \
                 data.current_table)
             if not new_name in dependencies:
-                found = data._DependencyNavigator2__ACTION__add__dependency( \
+                found = data._DependencyNavigator__ACTION__add__dependency( \
                     data.current_table, new_name)
                 if found:
                     print("[{}] already existed and has been linked".format(new_name))
@@ -65,10 +65,10 @@ def cmd(data, arg_lst):
                 print("[{}] is already a child".format(new_name))
                 return
         else:
-            dependents = data._DependencyNavigator2__ACTION__get_dependents( \
+            dependents = data._DependencyNavigator__ACTION__get_dependents( \
                 data.current_table)
             if not new_name in dependents:
-                found = data._DependencyNavigator2__ACTION__add__dependent( \
+                found = data._DependencyNavigator__ACTION__add__dependent( \
                     data.current_table, new_name)
                 if found:
                     print("[{}] already existed and has been linked".format(new_name))

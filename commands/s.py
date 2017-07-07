@@ -14,5 +14,5 @@ def cmd(data, arg_lst):
         for arg in arg_lst:
             if (arg[0] == "-f" or arg[0] == "--file") and len(arg) == 2:
                 filepath = arg[1]
-    data._DependencyNavigator2__ACTION__save(filepath)
+    data._DependencyNavigator__ACTION__save(filepath)
     print("Saved structre to {}".format(filepath))

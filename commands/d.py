@@ -10,8 +10,8 @@ __arg_list__ = {
 }
 
 def cmd(data, arg_lst):
-    dependents = data._DependencyNavigator2__ACTION__get_dependents(data.current_table)
-    dependencies = data._DependencyNavigator2__ACTION__get_dependencies(data.current_table)
+    dependents = data._DependencyNavigator__ACTION__get_dependents(data.current_table)
+    dependencies = data._DependencyNavigator__ACTION__get_dependencies(data.current_table)
     new_names = []
     if len(arg_lst) == 0:
         child = True
@@ -93,7 +93,7 @@ def cmd(data, arg_lst):
     for child, new_name in new_names:
         if child:
             if new_name in dependencies:
-                data._DependencyNavigator2__ACTION__delete_dependency(data.current_table, new_name)
+                data._DependencyNavigator__ACTION__delete_dependency(data.current_table, new_name)
                 print("Successfully deleted [{}]{}".format(new_name, ("" if data.current_table == data.NULL_TABLE \
                     else " dependency from [{}]".format(data.current_table))))
             else:
@@ -102,7 +102,7 @@ def cmd(data, arg_lst):
                 return
         else:
             if new_name in dependents:
-                data._DependencyNavigator2__ACTION__delete_dependent(data.current_table, new_name)
+                data._DependencyNavigator__ACTION__delete_dependent(data.current_table, new_name)
                 print("Successfully deleted [{}]{}".format(new_name, ("" if data.current_table == data.NULL_TABLE \
                     else " dependency on [{}]".format(data.current_table))))
             else:

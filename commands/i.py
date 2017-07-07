@@ -5,7 +5,7 @@ __help__ = "  Name:         Move In\n" \
 __arg_list__ = {}
 
 def cmd(data, arg_lst):
-    dependencies = data._DependencyNavigator2__ACTION__get_dependencies(data.current_table)
+    dependencies = data._DependencyNavigator__ACTION__get_dependencies(data.current_table)
     if len(arg_lst) == 0:
         name = data.py_cmd.input("Dependency: ")
     elif len(arg_lst) == 1:
@@ -21,7 +21,7 @@ def cmd(data, arg_lst):
     except ValueError:
         #The input was not a number
         pass
-    if name in data._DependencyNavigator2__ACTION__get_dependencies(data.current_table):
+    if name in data._DependencyNavigator__ACTION__get_dependencies(data.current_table):
         data.history.append(data.current_table)
         data.current_table = name
     else:

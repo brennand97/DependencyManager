@@ -13,5 +13,5 @@ def cmd(data, arg_lst):
         os.rename(data.SAVED_SESSION, data.SAVED_SESSION_OLD)
     if "ds" in data.commands:
         data.commands["ds"].cmd()
-    data._DependencyNavigator2__ACTION__save(data.SAVED_SESSION)
-    data._DependencyNavigator2__ACTION__quit()
+    data._DependencyNavigator__ACTION__save(data.SAVED_SESSION)
+    data._DependencyNavigator__ACTION__quit()
