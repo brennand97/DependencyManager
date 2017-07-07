@@ -93,11 +93,11 @@ class DynamicCmd:
     def run(self):
         if self.start_callback != None:
             self.start_callback()
-        self.py_cmd.run(self.handle_command, self.create_header)
+        self.py_cmd.run(self.handle_command, self.__create_header)
 
 
     def handle_command(self, args):
-        self.update_commands()
+        self.__update_commands()
         if self.pre_callback != None:
             self.pre_callback(args)
         action = args[0]
@@ -132,11 +132,11 @@ class DynamicCmd:
             self.post_callback(args)
 
 
-    def create_header(self):
+    def __create_header(self):
         return ""
 
 
-    def update_commands(self):
+    def __update_commands(self):
         self.dm.update_cmds(self.commands, self.cmds_path, True)
 
 

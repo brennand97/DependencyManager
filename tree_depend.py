@@ -138,56 +138,87 @@ class DependencyNavigator(CMD.DynamicCmd):
                         return self.shorten_history()
 
 
-    def add__dependency(self, p_name: str, t_name: str) -> bool:
+    def add_dependency(self, p_name: str, c_name: str) -> bool:
         """Adds dependency relationship between two tables
 
         This method will add a dependency to the table p_name and a dependent
-        to the table t_name.  This will update the table instances in
+        to the table c_name.  This will update the table instances in
         self.tables.  If neither of the tables exist they will be created and
-        added to self.tables.  NOTE: If p_name is equal to NULL_TABLE this
-        function will just serve as a method to create the child table,
-        t_name.
+        added to self.tables.  NOTE: If p_name or c_name is equal to
+        NULL_TABLE this function will just serve as a method to create the
+        other table if it is not equal to NULL_TABLE as well.
 
         Args:
             p_name (str): The table name of the parent table
-            t_name (str): The table name of the dependent table
+            c_name (str): The table name of the child table
 
         Returns:
             bool: True if the child table already existed and was just
                 updated.  False if the child table was created.  This
                 result signals wether the child table was found.
         """
+
+        # Return value
         found: bool = False
-        if not t_name in self.tables:
-            table: Table = Table(t_name)
-            self.tables[t_name] = table
-        else:
-            table: Table = self.tables[t_name]
-            found = True
+
+        # Check if c_name is null
+        if c_name != self.NULL_TABLE:
+            # Check if child table exists
+            if not c_name in self.tables:
+                # If not create it
+                table: Table = Table(c_name)
+                # And add it to self.tables
+                self.tables[c_name] = table
+            else:
+                # Else pull the table into local variable from self.tables
+                table: Table = self.tables[c_name]
+                # Set return value to True
+                found = True
+
+        # Check if p_name is null
         if p_name != self.NULL_TABLE:
+            # Check if parent table exists
             if not p_name in self.tables:
+                # If not create it
                 p_table: Table = Table(p_name)
+                # And add it to self.tables
                 self.tables[p_name] = p_table
             else:
+                # Else pull the table into local variable from self.tables
                 p_table: Table = self.tables[p_name]
-            p_table.dependiences[t_name] = table
+
+        # If both tables aren't null create dependency relation
+        if p_name != self.NULL_TABLE and c_name != self.NULL_TABLE:
+            # Set the child table as a dependency of the parent table
+            p_table.dependiences[c_name] = table
+            # Set the parent table as a dependent of the child table
             table.dependents[p_name] = p_table
+
         return found
 
 
-    def add__dependent(self, c_name: str, t_name: str) -> bool:
-        found: bool = False
-        if not t_name in self.tables:
-            table: Table = Table(t_name)
-            self.tables[t_name] = table
-        else:
-            table: Table = self.tables[t_name]
-            found = True
-        if c_name != self.NULL_TABLE:
-            c_table: Table = self.tables[c_name]
-            c_table.dependents[t_name] = table
-            table.dependiences[c_name] = c_table
-        return found
+    def add_dependent(self, c_name: str, p_name: str) -> bool:
+        """Adds dependency relationship between two tables
+
+        This method will add a dependency to the table p_name and a dependent
+        to the table c_name.  This will update the table instances in
+        self.tables.  If neither of the tables exist they will be created and
+        added to self.tables.  NOTE: If c_name or p_name is equal to
+        NULL_TABLE this function will just serve as a method to create the
+        other table if it is not equal to NULL_TABLE as well.
+
+        Args:
+            c_name (str): The table name of the child table
+            p_name (str): The table name of the parent table
+
+        Returns:
+            bool: True if the child table already existed and was just
+                updated.  False if the child table was created.  This
+                result signals wether the child table was found.
+        """
+
+        # This operation is the same as adding a dependency, just in reverse
+        return self.add_dependency(p_name, c_name)
 
 
     def delete_dependency(self, p_name: str, t_name: str) -> None:
@@ -306,9 +337,9 @@ class DependencyNavigator(CMD.DynamicCmd):
             else:
                 new, dep = self.load_sql_tmp(filepath)
             for n in new:
-                self.add__dependency(self.NULL_TABLE, n)
+                self.add_dependency(self.NULL_TABLE, n)
             for p, c in dep:
-                self.add__dependency(p, c)
+                self.add_dependency(p, c)
             return True
         except IOError:
             return False
