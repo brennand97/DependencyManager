@@ -11,7 +11,6 @@ def update_cmds(commands, path, remove=False):
 
     # Update modules
     for mod in cmds.__all__:
-        print(mod)
         if mod in commands:
             # Old module
             del commands[mod]
