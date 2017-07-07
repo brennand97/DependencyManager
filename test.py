@@ -26,6 +26,7 @@ def update_cmds(commands, path, remove=False):
 
 
 if __name__ == "__main__":
+    #print(dir())
     print(g_commands)
     update_cmds(g_commands, "commands")
     print(g_commands)
