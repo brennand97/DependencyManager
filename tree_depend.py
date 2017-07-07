@@ -17,7 +17,30 @@ class Table:
         self.dependents: dict = {}
 
 
-class DependencyNavigator (CMD.DynamicCmd):
+class DependencyNavigator(CMD.DynamicCmd):
+    """Command line interface for navigating and constructing a complex tree.
+
+    This tree represetns a database dependency structure.  Each tree node, a
+    Table, can have multiple children and multiple parents.  Where the children
+    are that table's dependencies and the parents are objects that are dependent
+    on that table.
+
+    Attributes:
+        NULL_TABLE (str): The reserved string that represents a null table or
+            no table selected.
+        SAVED_SESSION (str): The file name for the current saved session.
+        SAVED_SESSION_OLD (str): The file name for the pervious saved session.
+            This is done because the q command creates an empty SAVED_SESSION,
+            so with this file an acidentally deleted session can be restored.
+        tables (dict): A dictionary containing all of the instanciated tables.
+            The key (str) is the table name, and the value (Table) is the table
+            instance.
+        history (list): A stack that represents the path through the tree
+            nodes (tables) that the user has taken.
+        current_table (str): The table name of the current table that the
+            user is at.  NOTE: When this is set to NULL_TABLE it means that
+            the user is not currently at a table.
+    """
 
     NULL_TABLE: str = "__NULL__TABLE__NAME__"
     SAVED_SESSION: str = ".saved_session"
@@ -27,34 +50,40 @@ class DependencyNavigator (CMD.DynamicCmd):
     current_table: str = NULL_TABLE
 
     def __init__(self, command_path: str, tables={}) -> None:
-        """
+        """DependencyNavigator initialization function
+
         This function initilizes the Dependency Navigator and its parent class.
         It sets some of the DynamicCmd's callable variables to its methods.
 
         Args:
-            command_path (str): The filepath to the folder that contains the command files
-            tables (dict(Table)):
+            command_path (str): The filepath to the folder that contains the
+                command files.
+            tables (dict(Table)): A starting list of tables with relations to
+                each other.  Defualts to and empty dictionary.
+
+        Returns:
+            None
         """
-        super().__init__(command_path, start_callback=self.start_callback, \
-            pre_callback=self.pre_cmd_callback, post_callback=self.post_cmd_callback)
+        super().__init__(command_path, start_callback=self.__start_callback, \
+            pre_callback=self.__pre_cmd_callback, post_callback=self.__post_cmd_callback)
         self.tables = tables
-        self.data: DependencyNavigator = self
+        self.data = self
 
 
-    def pre_cmd_callback(self, args: list) -> None:
+    def __pre_cmd_callback(self, args: list) -> None:
         pass
 
 
-    def post_cmd_callback(self, args: list) -> None:
+    def __post_cmd_callback(self, args: list) -> None:
         self.shorten_history()
 
 
-    def start_callback(self) -> None:
+    def __start_callback(self) -> None:
         if not self.load(self.SAVED_SESSION):
             self.save(self.SAVED_SESSION)
 
 
-    def create_header(self) -> str:
+    def __create_header(self) -> str:
         s: str = ""
         for t in self.history:
             if t == self.NULL_TABLE:
@@ -66,18 +95,38 @@ class DependencyNavigator (CMD.DynamicCmd):
 
 
     def display_all_tables(self) -> None:
-        if len(self.tables) == 0:
+        """Displays all of the tables in self.tables
+
+        This method will display all of the tables in self.tables if any
+        exist, else it will print out that ther are currently no tables.
+
+        Args:
+            None
+
+        Return:
+            None
+        """
+        if not self.tables:
             print("There are currently no tables")
             return
         print("All Tables:")
-        idx: int = 0
-        self.display_list(
-            sorted(self.tables),
-            "   "
-        )
+        self.display_list(sorted(self.tables), "   ")
 
 
     def shorten_history(self) -> None:
+        """Removes any circular paths in self.history
+
+        This will traverse self.history and remove any circular segments
+        that exist.  Without this method is circular paths were being
+        continuously traversed through the length of the history string
+        would become absurdly long.
+
+        Args:
+            None
+
+        Returns:
+            None
+        """
         history: list = self.history[:]
         history.append(self.current_table)
         for h_i in range(0, len(history) - 1):
@@ -90,6 +139,24 @@ class DependencyNavigator (CMD.DynamicCmd):
 
 
     def add__dependency(self, p_name: str, t_name: str) -> bool:
+        """Adds dependency relationship between two tables
+
+        This method will add a dependency to the table p_name and a dependent
+        to the table t_name.  This will update the table instances in
+        self.tables.  If neither of the tables exist they will be created and
+        added to self.tables.  NOTE: If p_name is equal to NULL_TABLE this
+        function will just serve as a method to create the child table,
+        t_name.
+
+        Args:
+            p_name (str): The table name of the parent table
+            t_name (str): The table name of the dependent table
+
+        Returns:
+            bool: True if the child table already existed and was just
+                updated.  False if the child table was created.  This
+                result signals wether the child table was found.
+        """
         found: bool = False
         if not t_name in self.tables:
             table: Table = Table(t_name)
@@ -98,7 +165,11 @@ class DependencyNavigator (CMD.DynamicCmd):
             table: Table = self.tables[t_name]
             found = True
         if p_name != self.NULL_TABLE:
-            p_table: Table = self.tables[p_name]
+            if not p_name in self.tables:
+                p_table: Table = Table(p_name)
+                self.tables[p_name] = p_table
+            else:
+                p_table: Table = self.tables[p_name]
             p_table.dependiences[t_name] = table
             table.dependents[p_name] = p_table
         return found
@@ -259,15 +330,15 @@ class DependencyNavigator (CMD.DynamicCmd):
         paths: list = []
         tmp: list = []
         for t_name in self.tables:
-            pths_tmp: list = self.detect_circular(self.tables[t_name])
+            pths_tmp: list = self.__detect_circular(self.tables[t_name])
             for cir_path in pths_tmp:
-                cir_path = self.truncate_circular_list(cir_path)
+                cir_path = self.__truncate_circular_list(cir_path)
                 if cir_path != [] and cir_path != None:
                     paths.append(cir_path)
         return CO.list_leave_distinct(paths)
 
 
-    def detect_circular(self, table: Table, history=[]) -> list:
+    def __detect_circular(self, table: Table, history=[]) -> list:
         output: list = []
         # This is a post order recursive function
         if CO.list_contains(history, table.name):
@@ -276,14 +347,13 @@ class DependencyNavigator (CMD.DynamicCmd):
             return output
         history.append(table.name)
         for dep in sorted(table.dependents):
-            h = self.detect_circular(table.dependents[dep], history[:])
+            h = self.__detect_circular(table.dependents[dep], history[:])
             for c in h:
                 output.append(c)
         history.pop()
         return output
 
-
-    def truncate_circular_list(self, lst: list) -> list:
+    def __truncate_circular_list(self, lst: list) -> list:
         if len(lst) == 0:
             return []
         name: str = lst[-1]
