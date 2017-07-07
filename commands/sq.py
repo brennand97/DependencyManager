@@ -5,5 +5,5 @@ __help__ = "  Name:         Save and Quit\n" \
 __arg_list__ = {}
 
 def cmd(data, arg_lst):
-    data._DependencyNavigator__ACTION__save(data.SAVED_SESSION)
-    data._DependencyNavigator__ACTION__quit()
+    data.save(data.SAVED_SESSION)
+    data.quit()

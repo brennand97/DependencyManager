@@ -32,7 +32,7 @@ def cmd(data, arg_lst):
     if dump:
         data.__CMD__dump_structure([])
         print("Dumped current structure")
-    success = data._DependencyNavigator__ACTION__load(filepath, True) if sql else data.__ACTION__load(filepath, False)
+    success = data.load(filepath, True) if sql else data.load(filepath, False)
     if success:
         print("Loaded structure from {}".format(filepath))
     else:

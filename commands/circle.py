@@ -11,7 +11,7 @@ __arg_list__ = {
 
 def cmd(data, arg_lst):
     if len(arg_lst) == 0:
-        paths = data._DependencyNavigator__ACTION__get_circular_dependencies()
+        paths = data.get_circular_dependencies()
         for cp in paths:
             s = ""
             for n in cp:
@@ -20,6 +20,6 @@ def cmd(data, arg_lst):
             print("Circular path found: {}".format(s))
     else:
         if arg_lst[0][0] == "-df" or arg_lst[0][0] == "--delete-forward":
-            data._DependencyNavigator__ACTION__remove_circular_dependencies(True)
+            data.remove_circular_dependencies(True)
         elif arg_lst[0][0] == "-db" or arg_lst[0][0] == "--delete-backward":
-            data._DependencyNavigator__ACTION__remove_circular_dependencies(False)
+            data.remove_circular_dependencies(False)

@@ -29,9 +29,11 @@ class DependencyNavigator (CMD.DynamicCmd):
     def __init__(self, command_path: str, tables={}) -> None:
         """
         This function initilizes the Dependency Navigator and its parent class.
-
         It sets some of the DynamicCmd's callable variables to its methods.
 
+        Args:
+            command_path (str): The filepath to the folder that contains the command files
+            tables (dict(Table)):
         """
         super().__init__(command_path, start_callback=self.start_callback, \
             pre_callback=self.pre_cmd_callback, post_callback=self.post_cmd_callback)
@@ -44,12 +46,12 @@ class DependencyNavigator (CMD.DynamicCmd):
 
 
     def post_cmd_callback(self, args: list) -> None:
-        self.__ACTION__shorten_history()
+        self.shorten_history()
 
 
     def start_callback(self) -> None:
-        if not self.__ACTION__load(self.SAVED_SESSION):
-            self.__ACTION__save(self.SAVED_SESSION)
+        if not self.load(self.SAVED_SESSION):
+            self.save(self.SAVED_SESSION)
 
 
     def create_header(self) -> str:
@@ -63,19 +65,19 @@ class DependencyNavigator (CMD.DynamicCmd):
         return s
 
 
-    def __ACTION__display_all_tables(self) -> None:
+    def display_all_tables(self) -> None:
         if len(self.tables) == 0:
             print("There are currently no tables")
             return
         print("All Tables:")
         idx: int = 0
-        self.__ACTION__display_list(
+        self.display_list(
             sorted(self.tables),
             "   "
         )
 
 
-    def __ACTION__shorten_history(self) -> None:
+    def shorten_history(self) -> None:
         history: list = self.history[:]
         history.append(self.current_table)
         for h_i in range(0, len(history) - 1):
@@ -84,10 +86,10 @@ class DependencyNavigator (CMD.DynamicCmd):
                     if history[h_i] == history[h_j]:
                         history = history[:h_i] + history[h_j:]
                         self.history = history[:-1]
-                        return self.__ACTION__shorten_history()
+                        return self.shorten_history()
 
 
-    def __ACTION__add__dependency(self, p_name: str, t_name: str) -> bool:
+    def add__dependency(self, p_name: str, t_name: str) -> bool:
         found: bool = False
         if not t_name in self.tables:
             table: Table = Table(t_name)
@@ -102,7 +104,7 @@ class DependencyNavigator (CMD.DynamicCmd):
         return found
 
 
-    def __ACTION__add__dependent(self, c_name: str, t_name: str) -> bool:
+    def add__dependent(self, c_name: str, t_name: str) -> bool:
         found: bool = False
         if not t_name in self.tables:
             table: Table = Table(t_name)
@@ -117,23 +119,23 @@ class DependencyNavigator (CMD.DynamicCmd):
         return found
 
 
-    def __ACTION__delete_dependency(self, p_name: str, t_name: str) -> None:
+    def delete_dependency(self, p_name: str, t_name: str) -> None:
         if p_name == self.NULL_TABLE:
-            return self.__ACTION__delete_table(t_name)
+            return self.delete_table(t_name)
         table: Table = self.tables[t_name]
         del table.dependents[p_name].dependiences[t_name]
         del table.dependents[p_name]
 
 
-    def __ACTION__delete_dependent(self, c_name: str, t_name: str) -> None:
+    def delete_dependent(self, c_name: str, t_name: str) -> None:
         if c_name == self.NULL_TABLE:
-            return self.__ACTION__delete_table(t_name)
+            return self.delete_table(t_name)
         table: Table = self.tables[t_name]
         del table.dependencies[c_name].dependents[t_name]
         del table.dependencies[c_name]
 
 
-    def __ACTION__delete_table(self, t_name: str) -> None:
+    def delete_table(self, t_name: str) -> None:
         table: Table = self.tables[t_name]
         #Delete table reference from the dependents array of each dependency
         for t_d in table.dependiences:
@@ -145,11 +147,11 @@ class DependencyNavigator (CMD.DynamicCmd):
         del self.tables[t_name]
 
 
-    def __ACTION__quit(self) -> None:
+    def quit(self) -> None:
         self.py_cmd.stop()
 
 
-    def __ACTION__get_dependencies(self, t_name: str) -> list:
+    def get_dependencies(self, t_name: str) -> list:
         if t_name == self.NULL_TABLE:
             l: list = self.tables
         else:
@@ -160,7 +162,7 @@ class DependencyNavigator (CMD.DynamicCmd):
         return deps
 
 
-    def __ACTION__get_dependents(self, t_name: str) -> list:
+    def get_dependents(self, t_name: str) -> list:
         if t_name == self.NULL_TABLE:
             l: list = self.tables
         else:
@@ -171,14 +173,14 @@ class DependencyNavigator (CMD.DynamicCmd):
         return deps
 
 
-    def __ACTION__display_list(self, l: list(str(object)), prefix: str) -> None:
+    def display_list(self, l: list(str(object)), prefix: str) -> None:
         idx: int = 0
         for e in l:
             print("{}{:<6} [{}]".format(prefix, "({})".format(idx), e))
             idx = idx + 1
 
 
-    def __ACTION__save(self, filepath: str) -> None:
+    def save(self, filepath: str) -> None:
         with open(filepath, "w") as f:
             for t in sorted(self.tables):
                 f.write("NEW,{}\n".format(self.tables[t].name))
@@ -188,7 +190,7 @@ class DependencyNavigator (CMD.DynamicCmd):
             f.close()
 
 
-    def __ACTION__load_tmp(self, filepath: str) -> tuple:
+    def load_tmp(self, filepath: str) -> tuple:
         o_new: list = []
         o_dep: list = []
         with open(filepath, "r") as f:
@@ -206,7 +208,7 @@ class DependencyNavigator (CMD.DynamicCmd):
         return o_new, o_dep
 
 
-    def __ACTION__load_sql_tmp(self, filepath: str) -> tuple:
+    def load_sql_tmp(self, filepath: str) -> tuple:
         o_new: list = []
         o_dep: list = []
         with open(filepath, "r") as f:
@@ -226,34 +228,34 @@ class DependencyNavigator (CMD.DynamicCmd):
         return o_new, o_dep
 
 
-    def __ACTION__load(self, filepath: str, sql=False) -> bool:
+    def load(self, filepath: str, sql=False) -> bool:
         try:
             if not sql:
-                new, dep = self.__ACTION__load_tmp(filepath)
+                new, dep = self.load_tmp(filepath)
             else:
-                new, dep = self.__ACTION__load_sql_tmp(filepath)
+                new, dep = self.load_sql_tmp(filepath)
             for n in new:
-                self.__ACTION__add__dependency(self.NULL_TABLE, n)
+                self.add__dependency(self.NULL_TABLE, n)
             for p, c in dep:
-                self.__ACTION__add__dependency(p, c)
+                self.add__dependency(p, c)
             return True
         except IOError:
             return False
 
 
-    def __ACTION__remove_circular_dependencies(self, forward=True) -> None:
-        cir: list = self.__ACTION__get_circular_dependencies()
+    def remove_circular_dependencies(self, forward=True) -> None:
+        cir: list = self.get_circular_dependencies()
         while len(cir) > 0:
             if forward:
-                self.__ACTION__delete_dependency(cir[0][-1], cir[0][-2])
+                self.delete_dependency(cir[0][-1], cir[0][-2])
                 print("Removed dependency: {} <- {}".format(cir[0][-2], cir[0][-1]))
             else:
-                self.__ACTION__delete_dependent(cir[0][:1], cir[0][2])
+                self.delete_dependent(cir[0][:1], cir[0][2])
                 print("Removed dependency: {} <- {}".format(cir[0][1], cir[0][2]))
-            cir = self.__ACTION__get_circular_dependencies()
+            cir = self.get_circular_dependencies()
 
 
-    def __ACTION__get_circular_dependencies(self) -> list:
+    def get_circular_dependencies(self) -> list:
         paths: list = []
         tmp: list = []
         for t_name in self.tables:
