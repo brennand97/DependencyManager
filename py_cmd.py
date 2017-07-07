@@ -72,14 +72,14 @@ class PyCMD:
 
 class DynamicCmd:
 
-	# Class dependencies
+    # Class dependencies
     dm = importlib.import_module("dynamic_module")
 
 
-    def __init__( self, cmds_path, 
-                  start_callback=None,
-                  pre_callback=None,
-                  post_callback=None ):
+    def __init__(self, cmds_path,
+                 start_callback=None,
+                 pre_callback=None,
+                 post_callback=None):
         self.py_cmd = PyCMD()
         self.commands = {}
         self.cmds_path = cmds_path
@@ -87,6 +87,7 @@ class DynamicCmd:
         self.pre_callback = pre_callback
         self.post_callback = post_callback
         self.start_callback = start_callback
+        self.data = None
 
 
     def run(self):
@@ -107,25 +108,31 @@ class DynamicCmd:
                 for a in args[1:]:
                     if a in cmd_map:
                         print("{}:".format(a))
-                        print("  {}".format(self.commands[cmd_map[a]].__help__))
+                        print("{}".format(self.commands[cmd_map[a]].__help__))
                     else:
-                        print("{} is an invalid command".format(a))
+                        print("\"{}\" is an invalid command".format(a))
             else:
                 for a in cmd_map:
                     print("{}:".format(a))
-                    print("  {}".format(self.commands[cmd_map[a]].__help__))
+                    print("{}".format(self.commands[cmd_map[a]].__help__))
         elif action not in cmd_map:
-            print("{} is an invalid command".format(action))
+            print("\"{}\" is an invalid command".format(action))
         else:
             a_cmd = self.commands[cmd_map[action]]
-            a_cmd.cmd(self, self.py_cmd.create_arg_lists( \
-                args[1:], a_cmd.__arg_list__))
+            try:
+                arg_lst = self.py_cmd.create_arg_lists( \
+                    args[1:], a_cmd.__arg_list__)
+            except ValueError:
+                print("Invalid syntax:\n{}".format(a_cmd.__help__))
+                arg_lst = []
+            a_cmd.cmd(self.data, arg_lst)
+
         if self.post_callback != None:
             self.post_callback(args)
 
 
     def create_header(self):
-        return self.py_cmd.header_end
+        return ""
 
 
     def update_commands(self):
@@ -134,4 +141,4 @@ class DynamicCmd:
 
 if __name__ == "__main__":
     dc = DynamicCmd("commands")
-    dc.handle_command(["blah"])
+    dc.run()
