@@ -55,7 +55,7 @@ def cmd(data, arg_lst):
             dependencies = data.get_dependencies( \
                 data.current_table)
             if not new_name in dependencies:
-                found = data.add__dependency( \
+                found = data.add_dependency( \
                     data.current_table, new_name)
                 if found:
                     print("[{}] already existed and has been linked".format(new_name))
@@ -68,7 +68,7 @@ def cmd(data, arg_lst):
             dependents = data.get_dependents( \
                 data.current_table)
             if not new_name in dependents:
-                found = data.add__dependent( \
+                found = data.add_dependent( \
                     data.current_table, new_name)
                 if found:
                     print("[{}] already existed and has been linked".format(new_name))
