@@ -1,9 +1,6 @@
-""" Testing folder package """
+""" Dynamic module loader """
 
 import importlib
-
-
-g_commands = {}
 
 def update_cmds(commands, path, remove=False):
     """ This function will load all the new modules found in
@@ -26,7 +23,12 @@ def update_cmds(commands, path, remove=False):
 
 
 if __name__ == "__main__":
-    #print(dir())
-    print(g_commands)
-    update_cmds(g_commands, "commands")
-    print(g_commands)
+    import sys
+    if len(sys.argv) < 2:
+        print("A path needs to be provided")
+        print("Exiting...")
+        sys.exit(1)
+    G_COMMANDS = {}
+    update_cmds(G_COMMANDS, sys.argv[1])
+    print("Loaded Modules: {}".format(G_COMMANDS))
+    sys.exit(0)
