@@ -1,19 +1,26 @@
 
-__help__ = "  Name:         Delete\n" \
-           "  Syntax:       d [ [<-c | --child> <table name | index>] [<-p | --parent> <table name | index>] ]...\n" \
-           "  Description:  Deletes tables and dependency relations"
+__syntax__ = "d [ [<-c | --child> | <-p | --parent> | <-h | --hard> ] <table name | index>]..."
+
+__help__: str = "  Name:         Delete\n" \
+                "  Syntax:       {}\n" \
+                "  Description:  Deletes tables and dependency relations".format(__syntax__)
+
 __arg_list__ = {
     "-c"       : 1,
     "--child"  : 1,
     "-p"       : 1,
-    "--parent" : 1
+    "--parent" : 1,
+    "-h"       : 1,
+    "--hard"   : 1
 }
+
+# TODO: Make subfunctions for this code as there is a lot of large complex repeating segments.
 
 def cmd(data, arg_lst):
     dependents = data.get_dependents(data.current_table)
     dependencies = data.get_dependencies(data.current_table)
     new_names = []
-    if len(arg_lst) == 0:
+    if not arg_lst:
         child = True
         in_cp = ""
         while in_cp == "":
@@ -51,7 +58,7 @@ def cmd(data, arg_lst):
                     new_name = arg[1]
                 else:
                     print("Multiple table entry only works with the syntax:")
-                    print("   d [ [<-c | --child> <table name>] [<-p | --parent> <table name>] ]...")
+                    print("   {}".format(__syntax__))
                     return
                 try:
                     idx = int(new_name)
@@ -75,7 +82,7 @@ def cmd(data, arg_lst):
                     new_name = arg[1]
                 else:
                     print("Multiple table entry only works with the syntax:")
-                    print("   d [ [<-c | --child> <table name>] [<-p | --parent> <table name>] ]...")
+                    print("   {}".format(__syntax__))
                     return
                 try:
                     idx = int(new_name)
@@ -90,6 +97,9 @@ def cmd(data, arg_lst):
                     #The input was not a number
                     pass
                 new_names.append((child, new_name))
+            elif len(arg) > 1 and (arg[0] == "-h" or arg[0] == "--parent"):
+                print("Hard option is not yet implmented...")
+                # TODO: implement hard option
     for child, new_name in new_names:
         if child:
             if new_name in dependencies:
