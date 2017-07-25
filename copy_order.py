@@ -22,6 +22,14 @@ def D2_list_contains(l, e):
     return False
 
 
+def D2_list_find(l, e):
+    for g_i, g in enumerate(l):
+        for i_i, i in enumerate(g):
+            if e == i:
+                return (g_i, i_i)
+    return None
+
+
 def D2_list_length(l):
     size = 0
     for g in l:

@@ -22,8 +22,8 @@ def cmd(data, arg_lst):
         #The input was not a number
         pass
     if name in data.get_dependencies(data.current_table):
-        data.current_table = name
         data.history.append(data.current_table)
+        data.current_table = name
     else:
         print("[{}] {}".format(name, ("does not exist" if data.current_table == data.NULL_TABLE \
                     else "is not a child of [{}]".format(data.current_table))))

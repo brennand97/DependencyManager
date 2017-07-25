@@ -1,9 +1,9 @@
 
 __syntax__ = "d [ [<-c | --child> | <-p | --parent> | <-h | --hard> ] <table name | index>]..."
 
-__help__: str = "  Name:         Delete\n" \
-                "  Syntax:       {}\n" \
-                "  Description:  Deletes tables and dependency relations".format(__syntax__)
+__help__ = ("  Name:         Delete\n"
+            "  Syntax:       {}\n"
+            "  Description:  Deletes tables and dependency relations".format(__syntax__))
 
 __arg_list__ = {
     "-c"       : 1,
