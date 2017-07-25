@@ -6,6 +6,7 @@ Description: TODO
 
 import sys
 import importlib
+import abc
 
 class PyCMD:
 
@@ -72,6 +73,8 @@ class PyCMD:
 
 class DynamicCmd:
 
+    __metadata__ = abc.ABCMeta
+
     # Class dependencies
     dm = importlib.import_module("dynamic_module")
 
@@ -93,7 +96,7 @@ class DynamicCmd:
     def run(self):
         if self.start_callback != None:
             self.start_callback()
-        self.py_cmd.run(self.handle_command, self.__create_header)
+        self.py_cmd.run(self.handle_command, self.create_header)
 
 
     def handle_command(self, args):
@@ -131,8 +134,9 @@ class DynamicCmd:
         if self.post_callback != None:
             self.post_callback(args)
 
-
-    def __create_header(self):
+            
+    @abc.abstractmethod
+    def create_header(self):
         return ""
 
 

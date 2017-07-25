@@ -83,7 +83,7 @@ class DependencyNavigator(CMD.DynamicCmd):
             self.save(self.SAVED_SESSION)
 
 
-    def __create_header(self) -> str:
+    def create_header(self) -> str:
         s: str = ""
         for t in self.history:
             if t == self.NULL_TABLE:
