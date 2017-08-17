@@ -283,30 +283,36 @@ class DependencyNavigator(CMD.DynamicCmd):
 
 
     def save(self, filepath: str) -> None:
-        with open(filepath, "w") as f:
-            for t in sorted(self.tables):
-                f.write("NEW,{}\n".format(self.tables[t].name))
-            for t in sorted(self.tables):
-                for t_d in sorted(self.tables[t].dependiences):
-                    f.write("DEPENDENCY,{},{}\n".format(self.tables[t].name, self.tables[t].dependiences[t_d].name))
-            f.close()
+        try:
+            with open(filepath, "w") as f:
+                for t in sorted(self.tables):
+                    f.write("NEW,{}\n".format(self.tables[t].name))
+                for t in sorted(self.tables):
+                    for t_d in sorted(self.tables[t].dependiences):
+                        f.write("DEPENDENCY,{},{}\n".format(self.tables[t].name, self.tables[t].dependiences[t_d].name))
+                f.close()
+        except Exception as e:
+            print("Could not save file, error: ", e)
 
 
     def load_tmp(self, filepath: str) -> tuple:
         o_new = []
         o_dep = []
-        with open(filepath, "r") as f:
-            for line in f:
-                if not line.strip():
-                    break
-                if line[:1] == "#":
-                    continue
-                cmd_struct = (line[:-1]).split(",")
-                if cmd_struct[0] == "NEW":
-                    o_new.append(cmd_struct[1])
-                elif cmd_struct[0] == "DEPENDENCY":
-                    o_dep.append((cmd_struct[1], cmd_struct[2]))
-            f.close()
+        try:
+            with open(filepath, "r") as f:
+                for line in f:
+                    if not line.strip():
+                        break
+                    if line[:1] == "#":
+                        continue
+                    cmd_struct = (line[:-1]).split(",")
+                    if cmd_struct[0] == "NEW":
+                        o_new.append(cmd_struct[1])
+                    elif cmd_struct[0] == "DEPENDENCY":
+                        o_dep.append((cmd_struct[1], cmd_struct[2]))
+                f.close()
+        except Exception as e:
+            print("Could not load file, error: ", e)
         return o_new, o_dep
 
 
