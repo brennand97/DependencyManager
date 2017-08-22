@@ -233,8 +233,8 @@ class DependencyNavigator(CMD.DynamicCmd):
         if c_name == self.NULL_TABLE:
             return self.delete_table(t_name)
         table = self.tables[t_name]
-        del table.dependencies[c_name].dependents[t_name]
-        del table.dependencies[c_name]
+        del table.dependiences[c_name].dependents[t_name]
+        del table.dependiences[c_name]
 
 
     def delete_table(self, t_name: str) -> None:
@@ -358,7 +358,7 @@ class DependencyNavigator(CMD.DynamicCmd):
                 self.delete_dependency(cir[0][-1], cir[0][-2])
                 print("Removed dependency: {} <- {}".format(cir[0][-2], cir[0][-1]))
             else:
-                self.delete_dependent(cir[0][:1], cir[0][2])
+                self.delete_dependent(cir[0][1], cir[0][2])
                 print("Removed dependency: {} <- {}".format(cir[0][1], cir[0][2]))
             cir = self.get_circular_dependencies()
 

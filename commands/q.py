@@ -12,6 +12,6 @@ def cmd(data, arg_lst):
     if os.path.isfile(data.SAVED_SESSION):
         os.rename(data.SAVED_SESSION, data.SAVED_SESSION_OLD)
     if "ds" in data.commands:
-        data.commands["ds"].cmd()
+        data.commands["ds"].cmd(data, [])
     data.save(data.SAVED_SESSION)
     data.quit()
