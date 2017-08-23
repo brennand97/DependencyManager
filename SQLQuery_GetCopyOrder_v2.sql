@@ -91,26 +91,16 @@ SELECT a.[table_name], 0 AS [group_id] FROM @dep_map AS a;
 WHILE @current_group = 0 OR EXISTS(SELECT * FROM @group WHERE [group_id] = @current_group - 1)
 BEGIN
 
-	DECLARE GroupCursor CURSOR FORWARD_ONLY READ_ONLY
-	FOR SELECT [table_name] FROM @group WHERE [group_id] = @current_group OPEN GroupCursor
-	FETCH NEXT FROM GroupCursor INTO @table_name
-	WHILE @@FETCH_STATUS = 0
-	BEGIN
-		SELECT @children_list = [children] FROM @dep_map WHERE [table_name] = @table_name
-
-		IF EXISTS ( SELECT table_name FROM (SELECT child FROM @child_split cs WHERE cs.table_name = @table_name) c
-					INNER JOIN @group g ON c.child = g.table_name
-					WHERE g.group_id >= @current_group)
-		BEGIN
-			UPDATE @group SET group_id = @current_group + 1 WHERE table_name = @table_name
-		END
-
-		FETCH NEXT FROM GroupCursor INTO @table_name
-	END
-
-	-- Close up cursor
-	CLOSE GroupCursor
-	DEALLOCATE GroupCursor
+	UPDATE g
+	SET	g.group_id = g.group_id + 1
+	FROM @group AS g
+	FULL OUTER JOIN @child_split cs
+	ON cs.table_name = g.table_name
+	WHERE EXISTS (
+		SELECT table_name FROM (SELECT child FROM @child_split cs WHERE cs.table_name = g.table_name) c
+		INNER JOIN @group g2 ON c.child = g2.table_name
+		WHERE g2.group_id >= g.group_id
+	)
 
 	SET @current_group = @current_group + 1
 
@@ -121,34 +111,16 @@ DECLARE @group_id INT
 DECLARE @table_pass TABLE (table_name VARCHAR(255), group_id INT, pass INT)
 
 
--- Test the order
-DECLARE TestCursor CURSOR FORWARD_ONLY READ_ONLY
-	FOR SELECT [table_name], [group_id] FROM @group ORDER BY [group_id] OPEN TestCursor
-	FETCH NEXT FROM TestCursor INTO @table_name, @group_id
-	WHILE @@FETCH_STATUS = 0
-	BEGIN
-		SELECT @children_list = [children] FROM @dep_map WHERE [table_name] = @table_name
+-- Test Ordering
+INSERT INTO @table_pass
+SELECT table_name, group_id, pass = 
+	CASE WHEN EXISTS ( 
+		SELECT table_name FROM (SELECT child FROM @child_split cs WHERE cs.table_name = g.table_name) c
+		INNER JOIN @group g2 ON c.child = g2.table_name
+		WHERE g2.group_id >= g.group_id
+	) THEN 0 ELSE 1 END
+FROM @group g
 
-		DECLARE @pass INT = 0
-
-		IF NOT EXISTS ( SELECT table_name FROM (SELECT child FROM @child_split cs WHERE cs.table_name = @table_name) c
-						INNER JOIN @group g ON c.child = g.table_name
-						WHERE g.group_id >= @group_id )
-		BEGIN
-			SET @pass = 1
-		END
-		
-		INSERT INTO @table_pass ([table_name], [group_id], [pass]) VALUES (@table_name, @group_id, @pass)
-
-		IF @pass = 0
-			PRINT @table_name + ', group ' + CAST(@group_id AS VARCHAR) + ', is not in the correct group.'
-
-		FETCH NEXT FROM TestCursor INTO @table_name, @group_id
-	END
-
-	-- Close up cursor
-	CLOSE TestCursor
-	DEALLOCATE TestCursor
 
 IF NOT EXISTS ( SELECT * FROM @table_pass WHERE pass = 0 )
 BEGIN
