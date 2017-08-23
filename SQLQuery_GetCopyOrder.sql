@@ -18,6 +18,7 @@
 
 DECLARE @exp_map TABLE (parent_name VARCHAR(255), child_name VARCHAR(255));
 DECLARE @dep_map TABLE (table_name VARCHAR(255), children VARCHAR(MAX));
+DECLARE @child_split TABLE (table_name VARCHAR(255), child VARCHAR(255));
 DECLARE @group TABLE (table_name VARCHAR(255), group_id INT);
 DECLARE @tmp_group TABLE (table_name VARCHAR(255), group_id INT);
 
@@ -70,6 +71,17 @@ DECLARE @children_list VARCHAR(MAX);
 DECLARE @current_group INT = 0;
 DECLARE @delimiter VARCHAR(1) = ';';
 
+WITH split_string AS (
+	SELECT	table_name,
+			LTRIM(RTRIM(m.n.value('.[1]','varchar(8000)'))) AS child
+	FROM (
+		SELECT table_name, CAST('<XMLRoot><RowData>' + REPLACE(children,@delimiter,'</RowData><RowData>') + '</RowData></XMLRoot>' AS XML) AS x
+		FROM   @dep_map
+	) t CROSS APPLY x.nodes('/XMLRoot/RowData')m(n)
+)
+
+INSERT INTO @child_split
+SELECT table_name, child FROM split_string
 
 -- Initialize Group 0
 INSERT INTO @group ([table_name], [group_id])
@@ -80,16 +92,15 @@ SELECT a.[table_name], 0 AS [group_id] FROM @dep_map AS a;
 WHILE @current_group = 0 OR EXISTS(SELECT * FROM @group WHERE [group_id] = @current_group - 1)
 BEGIN
 
-	DECLARE GroupCursor CURSOR FAST_FORWARD READ_ONLY
+	DECLARE GroupCursor CURSOR FORWARD_ONLY READ_ONLY
 	FOR SELECT [table_name] FROM @group WHERE [group_id] = @current_group OPEN GroupCursor
 	FETCH NEXT FROM GroupCursor INTO @table_name
 	WHILE @@FETCH_STATUS = 0
 	BEGIN
 		SELECT @children_list = [children] FROM @dep_map WHERE [table_name] = @table_name
 
-		IF EXISTS ( SELECT table_name FROM
-						dbo.fn_Split(@children_list, @delimiter) c
-					INNER JOIN @group g ON c.Value = g.table_name
+		IF EXISTS ( SELECT table_name FROM (SELECT child FROM @child_split cs WHERE cs.table_name = @table_name) c
+					INNER JOIN @group g ON c.child = g.table_name
 					WHERE g.group_id = @current_group OR g.group_id = @current_group + 1)
 		BEGIN
 			UPDATE @group SET group_id = @current_group + 1 WHERE table_name = @table_name
@@ -121,9 +132,8 @@ DECLARE TestCursor CURSOR FORWARD_ONLY READ_ONLY
 
 		DECLARE @pass INT = 0
 
-		IF NOT EXISTS ( SELECT table_name FROM
-							dbo.fn_Split(@children_list, @delimiter) c
-						INNER JOIN @group g ON c.Value = g.table_name
+		IF NOT EXISTS ( SELECT table_name FROM (SELECT child FROM @child_split cs WHERE cs.table_name = @table_name) c
+						INNER JOIN @group g ON c.child = g.table_name
 						WHERE g.group_id >= @group_id )
 		BEGIN
 			SET @pass = 1
