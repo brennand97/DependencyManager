@@ -11,6 +11,6 @@ SELECT DB_NAME() AS dbname,
 			ORDER BY d.parent_table
 			FOR XML PATH('')), 1, 1, '') AS object_dependencies
 	FROM sys.objects o
-		WHERE o.type_desc = 'USER_TABLE'
+		WHERE o.type_desc = 'USER_TABLE' AND o.name != '__RefactorLog'
 		--GROUP BY o.name
 		ORDER BY referenced_table_name
